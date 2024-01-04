@@ -11,10 +11,10 @@ resource "aws_route53_record" "web" {
   name    = "web.ws.local"
   type    = "CNAME"
   ttl     = 60
-  
+
   alias {
-    name = aws_lb.web.dns_name
-    zone_id = aws_lb.web.zone_id
+    name                   = aws_lb.web.dns_name
+    zone_id                = aws_lb.web.zone_id
     evaluate_target_health = true
   }
 }

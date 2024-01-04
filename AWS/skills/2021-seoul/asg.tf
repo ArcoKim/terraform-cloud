@@ -1,10 +1,10 @@
 resource "aws_autoscaling_group" "stable" {
-  name = "web-stable"
-  desired_capacity   = 2
-  max_size           = 2
-  min_size           = 10
-  vpc_zone_identifier = [ aws_subnet.private-a.id, aws_subnet.private-b.id ]
-  target_group_arns = [ aws_lb_target_group.stable ]
+  name                = "web-stable"
+  desired_capacity    = 2
+  max_size            = 2
+  min_size            = 10
+  vpc_zone_identifier = [aws_subnet.private-a.id, aws_subnet.private-b.id]
+  target_group_arns   = [aws_lb_target_group.stable]
 
   launch_template {
     id      = aws_launch_template.stable.id
@@ -13,12 +13,12 @@ resource "aws_autoscaling_group" "stable" {
 }
 
 resource "aws_autoscaling_group" "test" {
-  name = "web-test"
-  desired_capacity   = 2
-  max_size           = 2
-  min_size           = 10
-  vpc_zone_identifier = [ aws_subnet.private-a.id, aws_subnet.private-b.id ]
-  target_group_arns = [ aws_lb_target_group.test ]
+  name                = "web-test"
+  desired_capacity    = 2
+  max_size            = 2
+  min_size            = 10
+  vpc_zone_identifier = [aws_subnet.private-a.id, aws_subnet.private-b.id]
+  target_group_arns   = [aws_lb_target_group.test]
 
   launch_template {
     id      = aws_launch_template.test.id
@@ -26,13 +26,41 @@ resource "aws_autoscaling_group" "test" {
   }
 }
 
-resource "aws_launch_template" "stable" {
-  name = "web_stable_lt"
-  image_id = local.ami
-  instance_type = local.instance_type
-  key_name = aws_key_pair.keypair.key_name
+resource "aws_autoscaling_policy" "stable" {
+  name                   = "web-stable-policy"
+  autoscaling_group_name = aws_autoscaling_group.stable.name
 
-  vpc_security_group_ids = [ aws_security_group.web.id ]
+  policy_type = "TargetTrackingScaling"
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+    target_value = 10.0
+  }
+}
+
+resource "aws_autoscaling_policy" "test" {
+  name                   = "web-test-policy"
+  autoscaling_group_name = aws_autoscaling_group.test.name
+
+  policy_type = "TargetTrackingScaling"
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+    target_value = 10.0
+  }
+}
+
+resource "aws_launch_template" "stable" {
+  name          = "web_stable_lt"
+  image_id      = local.ami
+  instance_type = local.instance_type
+  key_name      = aws_key_pair.keypair.key_name
+
+  vpc_security_group_ids = [aws_security_group.web.id]
   tag_specifications {
     resource_type = "instance"
 
@@ -45,12 +73,12 @@ resource "aws_launch_template" "stable" {
 }
 
 resource "aws_launch_template" "test" {
-  name = "web_test_lt"
-  image_id = local.ami
+  name          = "web_test_lt"
+  image_id      = local.ami
   instance_type = local.instance_type
-  key_name = aws_key_pair.keypair.key_name
+  key_name      = aws_key_pair.keypair.key_name
 
-  vpc_security_group_ids = [ aws_security_group.web.id ]
+  vpc_security_group_ids = [aws_security_group.web.id]
   tag_specifications {
     resource_type = "instance"
 
@@ -68,19 +96,19 @@ resource "aws_security_group" "web" {
   vpc_id      = aws_vpc.main.id
 
   ingress = [
-		{
-			from_port        = 22
-			to_port          = 22
-			protocol         = "tcp"
-			security_groups = [ aws_security_group.bastion.id ]
-		},
-		{
-			from_port        = 80
-			to_port          = 80
-			protocol         = "tcp"
-			security_groups = [ aws_security_group.alb.id ]
-		}
-	]
+    {
+      from_port       = 22
+      to_port         = 22
+      protocol        = "tcp"
+      security_groups = [aws_security_group.bastion.id]
+    },
+    {
+      from_port       = 80
+      to_port         = 80
+      protocol        = "tcp"
+      security_groups = [aws_security_group.alb.id]
+    }
+  ]
 
   egress {
     from_port        = 0
