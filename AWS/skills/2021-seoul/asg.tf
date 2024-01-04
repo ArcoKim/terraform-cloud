@@ -1,10 +1,10 @@
 resource "aws_autoscaling_group" "stable" {
-  name                = "web-stable"
+  name                = "web-skills-ap-stable"
   desired_capacity    = 2
-  max_size            = 2
-  min_size            = 10
+  min_size            = 2
+  max_size            = 10
   vpc_zone_identifier = [aws_subnet.private-a.id, aws_subnet.private-b.id]
-  target_group_arns   = [aws_lb_target_group.stable]
+  target_group_arns   = [aws_lb_target_group.stable.arn]
 
   launch_template {
     id      = aws_launch_template.stable.id
@@ -13,12 +13,12 @@ resource "aws_autoscaling_group" "stable" {
 }
 
 resource "aws_autoscaling_group" "test" {
-  name                = "web-test"
+  name                = "web-skills-ap-test"
   desired_capacity    = 2
-  max_size            = 2
-  min_size            = 10
+  min_size            = 2
+  max_size            = 10
   vpc_zone_identifier = [aws_subnet.private-a.id, aws_subnet.private-b.id]
-  target_group_arns   = [aws_lb_target_group.test]
+  target_group_arns   = [aws_lb_target_group.test.arn]
 
   launch_template {
     id      = aws_launch_template.test.id
@@ -59,6 +59,9 @@ resource "aws_launch_template" "stable" {
   image_id      = local.ami
   instance_type = local.instance_type
   key_name      = aws_key_pair.keypair.key_name
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.s3.arn
+  }
 
   vpc_security_group_ids = [aws_security_group.web.id]
   tag_specifications {
@@ -69,7 +72,7 @@ resource "aws_launch_template" "stable" {
     }
   }
 
-  user_data = filebase64("${path.module}/stable.sh")
+  user_data = filebase64("${local.filepath}/stable.sh")
 }
 
 resource "aws_launch_template" "test" {
@@ -77,6 +80,9 @@ resource "aws_launch_template" "test" {
   image_id      = local.ami
   instance_type = local.instance_type
   key_name      = aws_key_pair.keypair.key_name
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.s3.arn
+  }
 
   vpc_security_group_ids = [aws_security_group.web.id]
   tag_specifications {
@@ -87,7 +93,7 @@ resource "aws_launch_template" "test" {
     }
   }
 
-  user_data = filebase64("${path.module}/test.sh")
+  user_data = filebase64("${local.filepath}/test.sh")
 }
 
 resource "aws_security_group" "web" {
@@ -95,20 +101,19 @@ resource "aws_security_group" "web" {
   description = "Allow HTTP traffic"
   vpc_id      = aws_vpc.main.id
 
-  ingress = [
-    {
-      from_port       = 22
-      to_port         = 22
-      protocol        = "tcp"
-      security_groups = [aws_security_group.bastion.id]
-    },
-    {
-      from_port       = 80
-      to_port         = 80
-      protocol        = "tcp"
-      security_groups = [aws_security_group.alb.id]
-    }
-  ]
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion.id]
+  }
+  
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
 
   egress {
     from_port        = 0
