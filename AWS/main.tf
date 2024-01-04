@@ -3,7 +3,7 @@ module "vpc" {
 }
 
 module "bastion" {
-  source = "./bastion"
-  vpc = module.vpc.vpc
+  source   = "./bastion"
+  vpc      = module.vpc.vpc
   public-a = module.vpc.public-a
 }

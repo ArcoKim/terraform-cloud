@@ -39,7 +39,7 @@ resource "aws_lb_listener" "web" {
 
 resource "aws_lb_listener_rule" "dev" {
   listener_arn = aws_lb_listener.web.arn
-  priority = 1
+  priority     = 1
 
   action {
     type = "fixed-response"
@@ -53,23 +53,23 @@ resource "aws_lb_listener_rule" "dev" {
 
   condition {
     path_pattern {
-      values = [ "/swagger-ui.html" ]
+      values = ["/swagger-ui.html"]
     }
   }
 }
 
 resource "aws_lb_listener_rule" "test" {
   listener_arn = aws_lb_listener.web.arn
-  priority = 2
+  priority     = 2
 
   action {
-    type = "forward"
+    type             = "forward"
     target_group_arn = aws_lb_target_group.test.arn
   }
 
   condition {
     query_string {
-      key = "test"
+      key   = "test"
       value = "true"
     }
   }
