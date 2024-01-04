@@ -1,5 +1,33 @@
-resource "aws_launch_template" "web" {
-  name = "web_asg_lt"
+resource "aws_autoscaling_group" "stable" {
+  name = "web-stable"
+  desired_capacity   = 2
+  max_size           = 2
+  min_size           = 10
+  vpc_zone_identifier = [ aws_subnet.private-a.id, aws_subnet.private-b.id ]
+  target_group_arns = [ aws_lb_target_group.stable ]
+
+  launch_template {
+    id      = aws_launch_template.stable.id
+    version = "$Latest"
+  }
+}
+
+resource "aws_autoscaling_group" "test" {
+  name = "web-test"
+  desired_capacity   = 2
+  max_size           = 2
+  min_size           = 10
+  vpc_zone_identifier = [ aws_subnet.private-a.id, aws_subnet.private-b.id ]
+  target_group_arns = [ aws_lb_target_group.test ]
+
+  launch_template {
+    id      = aws_launch_template.test.id
+    version = "$Latest"
+  }
+}
+
+resource "aws_launch_template" "stable" {
+  name = "web_stable_lt"
   image_id = local.ami
   instance_type = local.instance_type
   key_name = aws_key_pair.keypair.key_name
@@ -13,7 +41,25 @@ resource "aws_launch_template" "web" {
     }
   }
 
-  user_data = filebase64("${path.module}/web.sh")
+  user_data = filebase64("${path.module}/stable.sh")
+}
+
+resource "aws_launch_template" "test" {
+  name = "web_test_lt"
+  image_id = local.ami
+  instance_type = local.instance_type
+  key_name = aws_key_pair.keypair.key_name
+
+  vpc_security_group_ids = [ aws_security_group.web.id ]
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Name = "web-skills-ap-test"
+    }
+  }
+
+  user_data = filebase64("${path.module}/test.sh")
 }
 
 resource "aws_security_group" "web" {

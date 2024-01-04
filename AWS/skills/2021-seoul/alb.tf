@@ -11,6 +11,9 @@ resource "aws_lb_target_group" "stable" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+  health_check {
+    path = "/health"
+  }
 }
 
 resource "aws_lb_target_group" "test" {
@@ -18,6 +21,9 @@ resource "aws_lb_target_group" "test" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+  health_check {
+    path = "/health"
+  }
 }
 
 resource "aws_lb_listener" "web" {
