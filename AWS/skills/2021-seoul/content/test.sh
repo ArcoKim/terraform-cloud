@@ -5,8 +5,8 @@ echo 'ec25678!' | passwd --stdin ec2-user
 
 yum update -y
 yum install -y httpd
-service httpd on
-service httpd start
+systemctl start httpd
+systemctl enable httpd
 aws s3 cp s3://skills-arco06/web/v2.tar .
 tar -xvf v2.tar -C /var/www/html/
 mv /var/www/html/v2/* /var/www/html
