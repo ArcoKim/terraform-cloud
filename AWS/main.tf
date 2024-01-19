@@ -8,6 +8,10 @@
 #   public-a = module.vpc.public-a
 # }
 
-module "seoul-2021" {
-  source = "./skills/2021-seoul"
+# module "seoul-2021" {
+#   source = "./skills/2021-seoul"
+# }
+
+module "national-2021" {
+  source = "./skills/2021-national"
 }
