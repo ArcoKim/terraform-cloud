@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: match
+  namespace: skills
+spec:
+  podSelector:
+    matchLabels:
+      app: match
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+    - from:
+      - ipBlock:
+          cidr: 10.0.3.0/24
+    - from:
+      - ipBlock:
+          cidr: 10.0.4.0/24
+    - from:
+      - ipBlock:
+          cidr: 10.0.5.0/24
+  egress:
+    - to:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+        - port: 80
+          protocol: TCP
+        - port: 443
+          protocol: TCP

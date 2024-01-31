@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: match
+  namespace: skills
+spec:
+  selector:
+    matchLabels:
+      app: match
+  template:
+    metadata:
+      labels:
+        skills/version: v1
+        app: match
+    spec:
+      nodeSelector:
+        skills/dedicated: app
+      tolerations:
+      - key: skills/dedicated
+        operator: Equal
+        value: app
+        effect: NoSchedule
+      containers:
+      - name: match
+        image: 073813292468.dkr.ecr.ap-northeast-2.amazonaws.com/match-ecr
+        resources:
+          requests:
+            cpu: 500m
+            memory: 256Mi
+          limits:
+            cpu: 1
+            memory: 512Mi
+        ports:
+        - containerPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stress
+  namespace: skills
+spec:
+  selector:
+    matchLabels:
+      app: stress
+  template:
+    metadata:
+      labels:
+        skills/version: v1
+        app: stress
+    spec:
+      nodeSelector:
+        skills/dedicated: app
+      tolerations:
+      - key: skills/dedicated
+        operator: Equal
+        value: app
+        effect: NoSchedule
+      containers:
+      - name: stress
+        image: 073813292468.dkr.ecr.ap-northeast-2.amazonaws.com/stress-ecr
+        resources:
+          requests:
+            cpu: 500m
+            memory: 256Mi
+          limits:
+            cpu: 1
+            memory: 512Mi
+        ports:
+        - containerPort: 8080

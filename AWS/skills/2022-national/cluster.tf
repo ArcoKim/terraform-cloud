@@ -8,7 +8,7 @@ resource "aws_eks_cluster" "skills" {
       aws_subnet.public-a.id, aws_subnet.public-b.id, aws_subnet.public-c.id
     ]
     endpoint_private_access = true
-    endpoint_public_access  = false
+    endpoint_public_access  = true
     security_group_ids = [ aws_security_group.control-plane.id ]
   }
   access_config {
@@ -21,6 +21,22 @@ resource "aws_eks_cluster" "skills" {
     aws_iam_role_policy_attachment.cluster-default,
     aws_iam_role_policy_attachment.vpc-resource-controller,
   ]
+}
+
+resource "aws_eks_access_entry" "console-allow" {
+  cluster_name  = aws_eks_cluster.skills.name
+  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/admin"
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "console-allow" {
+  cluster_name  = aws_eks_cluster.skills.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/admin"
+
+  access_scope {
+    type = "cluster"
+  }
 }
 
 resource "aws_eks_access_entry" "admin-allow" {
@@ -73,7 +89,8 @@ resource "aws_security_group" "control-plane" {
     from_port        = 443
     to_port          = 443
     protocol         = "tcp"
-    security_groups = [ aws_security_group.bastion.id ]
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   egress {
@@ -89,24 +106,6 @@ resource "aws_iam_openid_connect_provider" "eks" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.tls_certificate.cluster.certificates[0].sha1_fingerprint]
   url             = data.tls_certificate.cluster.url
-}
-
-data "aws_iam_policy_document" "oidc_policy" {
-  statement {
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-    effect  = "Allow"
-
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub"
-      values   = ["system:serviceaccount:kube-system:aws-node"]
-    }
-
-    principals {
-      identifiers = [aws_iam_openid_connect_provider.eks.arn]
-      type        = "Federated"
-    }
-  }
 }
 
 data "aws_iam_policy_document" "cluster" {

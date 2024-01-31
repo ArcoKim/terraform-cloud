@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: match
+  namespace: skills
+spec:
+  type: NodePort
+  selector:
+    app: match
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stress
+  namespace: skills
+spec:
+  type: NodePort
+  selector:
+    app: stress
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
