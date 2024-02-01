@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: stress
+  namespace: skills
   annotations:
     alb.ingress.kubernetes.io/load-balancer-name: stress-alb
     alb.ingress.kubernetes.io/target-type: instance

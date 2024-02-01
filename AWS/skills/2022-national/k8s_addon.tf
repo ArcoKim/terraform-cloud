@@ -1,5 +1,6 @@
 resource "helm_release" "metrics_server" {
   name = "metrics-server"
+  namespace = "kube-system"
 
   repository = "https://kubernetes-sigs.github.io/metrics-server"
   chart      = "metrics-server"
@@ -10,6 +11,7 @@ resource "helm_release" "cluster_autoscaler" {
 
   repository = "https://kubernetes.github.io/autoscaler"
   chart = "cluster-autoscaler"
+  namespace = "kube-system"
 
   set {
     name = "autoDiscovery.clusterName"
@@ -37,6 +39,7 @@ resource "helm_release" "aws-load-balancer-controller" {
 
   repository = "https://aws.github.io/eks-charts"
   chart = "aws-load-balancer-controller"
+  namespace = "kube-system"
 
   set {
     name = "clusterName"
@@ -75,25 +78,23 @@ resource "terraform_data" "calico-apply" {
   connection {
     type = "ssh"
     user = "ec2-user"
-    private_key = file("~/.ssh/id_rsa")
+    private_key = file(pathexpand("~/.ssh/id_rsa"))
     host = aws_instance.bastion.public_ip
   }
 
   provisioner "remote-exec" {
-    inline = [ 
-      "cat <<EOF > append.yaml",
-      "- apiGroups:",
-      "  - \"\"",
-      "  resources:",
-      "  - pods",
-      "  verbs:",
-      "  - patch",
-      "EOF",
-      "kubectl apply -f <(cat <(kubectl get clusterrole aws-node -o yaml) append.yaml)",
+    inline = [
+      "#!/bin/bash",
+      "kubectl apply -f <(cat <(kubectl get clusterrole aws-node -o yaml) /home/ec2-user/k8s/append.yaml)",
       "kubectl set env daemonset aws-node -n kube-system ANNOTATE_POD_IP=true",
+      "sleep 3",
       "CALICO_POD_NAME=$(kubectl get pods -n calico-system -o name | grep calico-kube-controllers- | cut -d '/' -f 2)",
       "kubectl delete pod $CALICO_POD_NAME -n calico-system"
     ]
+  }
+
+  lifecycle {
+    replace_triggered_by = [ helm_release.calico ]
   }
 
   depends_on = [ helm_release.calico ]

@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    kubectl = {
+      source = "gavinbunney/kubectl"
+      version = "1.14.0"
+    }
+  }
+}
+
 locals {
   filepath      = "./skills/2022-national/content"
   instance_type = "c5.large"
@@ -35,32 +44,57 @@ resource "aws_s3_object" "app" {
   etag = filemd5("${local.filepath}/app/${each.value}")
 }
 
-resource "aws_s3_object" "k8s" {
-  for_each = fileset("${local.filepath}/k8s", "**")
+resource "aws_s3_object" "k8s-match" {
+  for_each = fileset("${local.filepath}/k8s/match", "**")
   bucket = aws_s3_bucket.config.id
-  key = "k8s/${each.key}"
-  source = "${local.filepath}/k8s/${each.value}"
-  etag = filemd5("${local.filepath}/k8s/${each.value}")
+  key = "k8s/match/${each.key}"
+  source = "${local.filepath}/k8s/match/${each.value}"
+  etag = filemd5("${local.filepath}/k8s/match/${each.value}")
 }
 
-data "aws_eks_cluster" "skills" {
-  name = aws_eks_cluster.skills.name
+resource "aws_s3_object" "k8s-stress" {
+  for_each = fileset("${local.filepath}/k8s/stress", "**")
+  bucket = aws_s3_bucket.config.id
+  key = "k8s/stress/${each.key}"
+  source = "${local.filepath}/k8s/stress/${each.value}"
+  etag = filemd5("${local.filepath}/k8s/stress/${each.value}")
 }
 
-data "aws_eks_cluster_auth" "skills" {
-  name = aws_eks_cluster.skills.name
+resource "aws_s3_object" "deployment" {
+  bucket = aws_s3_bucket.config.id
+  key = "k8s/deployment.yaml"
+  source = "${local.filepath}/k8s/deployment.yaml"
+  etag = filemd5("${local.filepath}/k8s/deployment.yaml")
 }
 
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.skills.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.skills.certificate_authority[0].data)
-  token = data.aws_eks_cluster_auth.skills.token
+  host                   = aws_eks_cluster.skills.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.skills.certificate_authority[0].data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.skills.name]
+    command     = "aws"
+  }
 }
 
 provider "helm" {
   kubernetes {
-    host                   = data.aws_eks_cluster.skills.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.skills.certificate_authority[0].data)
-    token = data.aws_eks_cluster_auth.skills.token
+    host                   = aws_eks_cluster.skills.endpoint
+    cluster_ca_certificate = base64decode(aws_eks_cluster.skills.certificate_authority[0].data)
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.skills.name]
+      command     = "aws"
+    }
+  }
+}
+
+provider "kubectl" {
+  host                   = aws_eks_cluster.skills.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.skills.certificate_authority[0].data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.skills.name]
+    command     = "aws"
   }
 }

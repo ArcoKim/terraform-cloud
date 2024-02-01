@@ -1,4 +1,4 @@
-data "aws_iam_policy_document" "oidc" {
+data "aws_iam_policy_document" "oidc-cluster-autoscaler" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     effect  = "Allow"
@@ -6,7 +6,7 @@ data "aws_iam_policy_document" "oidc" {
     condition {
       test     = "StringEquals"
       variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub"
-      values   = ["system:serviceaccount:kube-system:aws-node"]
+      values   = ["system:serviceaccount:kube-system:cluster-autoscaler"]
     }
 
     principals {
@@ -17,7 +17,7 @@ data "aws_iam_policy_document" "oidc" {
 }
 
 resource "aws_iam_role" "cluster-autoscaler" {
-  assume_role_policy = data.aws_iam_policy_document.oidc.json
+  assume_role_policy = data.aws_iam_policy_document.oidc-cluster-autoscaler.json
   name               = "eks-cluster-autoscaler"
 }
 
@@ -68,14 +68,32 @@ resource "kubernetes_service_account" "cluster-autoscaler" {
   }
 }
 
+data "aws_iam_policy_document" "oidc-alb-controller" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub"
+      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
+    }
+
+    principals {
+      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+      type        = "Federated"
+    }
+  }
+}
+
 resource "aws_iam_role" "aws-load-balancer-controller" {
-  assume_role_policy = data.aws_iam_policy_document.oidc.json
+  assume_role_policy = data.aws_iam_policy_document.oidc-alb-controller.json
   name               = "aws-load-balancer-controller"
 }
 
 resource "aws_iam_policy" "aws-load-balancer-controller" {
   name = "aws-load-balancer-controller"
-  policy = file("${local.filepath}/iam_policy.json")
+  policy = file("${local.filepath}/alb-controller-policy.json")
 }
 
 resource "aws_iam_role_policy_attachment" "aws-load-balancer-controller-attach" {

@@ -37,6 +37,8 @@ resource "aws_eks_access_policy_association" "console-allow" {
   access_scope {
     type = "cluster"
   }
+  
+  depends_on = [ aws_eks_access_entry.console-allow ]
 }
 
 resource "aws_eks_access_entry" "admin-allow" {
@@ -53,6 +55,8 @@ resource "aws_eks_access_policy_association" "admin-allow" {
   access_scope {
     type = "cluster"
   }
+
+  depends_on = [ aws_eks_access_entry.admin-allow ]
 }
 
 resource "aws_eks_addon" "kube-proxy" {
@@ -67,6 +71,8 @@ resource "aws_eks_addon" "coredns" {
   addon_name   = "coredns"
   addon_version = "v1.10.1-eksbuild.4"
   resolve_conflicts_on_update = "OVERWRITE"
+
+  depends_on = [ aws_eks_node_group.addon ]
 }
 
 resource "aws_eks_addon" "vpc-cni" {

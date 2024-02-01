@@ -7,11 +7,11 @@ resource "aws_instance" "bastion" {
   key_name                    = aws_key_pair.keypair.key_name
   vpc_security_group_ids      = [aws_security_group.bastion.id]
   user_data                   = <<EOF
-    #!/bin/bash
-    sed -i 's/#Port 22/Port 37722/' /etc/ssh/sshd_config
-    sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-    systemctl restart sshd
-    echo 'ec21234!' | passwd --stdin ec2-user
+  #!/bin/bash
+  sed -i 's/#Port 22/Port 37722/' /etc/ssh/sshd_config
+  sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  systemctl restart sshd
+  echo 'ec21234!' | passwd --stdin ec2-user
   EOF
 
   tags = {

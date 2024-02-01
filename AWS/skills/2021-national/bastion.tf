@@ -8,9 +8,9 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [aws_security_group.bastion.id]
   iam_instance_profile        = aws_iam_instance_profile.poweruser.name
   user_data                   = <<EOF
-    #!/bin/bash
-    yum update -y
-    yum install -y jq
+  #!/bin/bash
+  yum update -y
+  yum install -y jq
   EOF
 
   tags = {
