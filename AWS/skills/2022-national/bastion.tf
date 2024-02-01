@@ -3,7 +3,6 @@ resource "aws_instance" "bastion" {
   associate_public_ip_address = true
   instance_type               = local.instance_type
   subnet_id                   = aws_subnet.public-a.id
-  disable_api_termination     = true
   key_name                    = aws_key_pair.keypair.key_name
   vpc_security_group_ids      = [aws_security_group.bastion.id]
   iam_instance_profile        = aws_iam_instance_profile.admin.name
@@ -38,8 +37,8 @@ resource "aws_instance" "bastion" {
   echo "export AWS_DEFAULT_REGION=${local.region}" >> ~/.bashrc
   echo "export AWS_ACCOUNT_ID=${data.aws_caller_identity.current.account_id}" >> ~/.bashrc
   source ~/.bashrc
-  sudo -u ec2-user aws eks update-kubeconfig --name ${aws_eks_cluster.skills.name} --kubeconfig ~/.kube/config
-  sudo -u ec2-user aws s3 cp s3://${aws_s3_bucket.config.id}/ ~/ --recursive
+  su - ec2-user -c 'aws eks update-kubeconfig --name ${aws_eks_cluster.skills.name} --kubeconfig ~/.kube/config'
+  su - ec2-user -c 'aws s3 cp s3://${aws_s3_bucket.config.id}/ ~/ --recursive'
   chmod +x ~/app/match/match && chmod +x ~/app/stress/stress
   git config --global credential.helper '!aws codecommit credential-helper $@'
   git config --global credential.UseHttpPath true

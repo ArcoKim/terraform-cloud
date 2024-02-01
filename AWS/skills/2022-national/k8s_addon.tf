@@ -4,6 +4,8 @@ resource "helm_release" "metrics_server" {
 
   repository = "https://kubernetes-sigs.github.io/metrics-server"
   chart      = "metrics-server"
+
+  depends_on = [ aws_eks_node_group.addon ]
 }
 
 resource "helm_release" "cluster_autoscaler" {
@@ -32,6 +34,8 @@ resource "helm_release" "cluster_autoscaler" {
     name = "rbac.serviceAccount.name"
     value = kubernetes_service_account.cluster-autoscaler.metadata[0].name
   }
+
+  depends_on = [ aws_eks_node_group.addon ]
 }
 
 resource "helm_release" "aws-load-balancer-controller" {
@@ -60,6 +64,8 @@ resource "helm_release" "aws-load-balancer-controller" {
     name = "serviceAccount.name"
     value = kubernetes_service_account.aws-load-balancer-controller.metadata[0].name
   }
+
+  depends_on = [ aws_eks_node_group.addon ]
 }
 
 resource "helm_release" "calico" {
@@ -72,6 +78,14 @@ resource "helm_release" "calico" {
   create_namespace = true
 
   values = [ "{ installation: {kubernetesProvider: EKS }}" ]
+
+  depends_on = [ aws_eks_node_group.addon ]
+}
+
+resource "time_sleep" "bastion-wait" {
+  create_duration = "3m"
+
+  depends_on = [ aws_instance.bastion ]
 }
 
 resource "terraform_data" "calico-apply" {
@@ -97,5 +111,8 @@ resource "terraform_data" "calico-apply" {
     replace_triggered_by = [ helm_release.calico ]
   }
 
-  depends_on = [ helm_release.calico ]
+  depends_on = [
+    helm_release.calico,
+    time_sleep.bastion-wait
+  ]
 }

@@ -2,6 +2,8 @@ resource "kubernetes_namespace" "skills" {
   metadata {
     name = "skills"
   }
+
+  depends_on = [ aws_eks_node_group.app ]
 }
 
 data "kubectl_file_documents" "deployment" {
@@ -11,6 +13,8 @@ data "kubectl_file_documents" "deployment" {
 resource "kubectl_manifest" "deployment" {
   for_each = data.kubectl_file_documents.deployment.manifests
   yaml_body = each.value
+
+  depends_on = [ kubernetes_namespace.skills ]
 }
 
 data "kubectl_file_documents" "service" {
@@ -59,11 +63,11 @@ resource "kubectl_manifest" "ingress-stress" {
 resource "kubectl_manifest" "networkpolicy-match" {
   yaml_body = file("${local.filepath}/k8s/match/networkpolicy.yaml")
 
-  depends_on = [ helm_release.calico ]
+  depends_on = [ terraform_data.calico-apply ]
 }
 
 resource "kubectl_manifest" "networkpolicy-stress" {
   yaml_body = file("${local.filepath}/k8s/stress/networkpolicy.yaml")
 
-  depends_on = [ helm_release.calico ]
+  depends_on = [ terraform_data.calico-apply ]
 }
