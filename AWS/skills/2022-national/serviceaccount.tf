@@ -66,6 +66,11 @@ resource "kubernetes_service_account" "cluster-autoscaler" {
       "eks.amazonaws.com/role-arn" = aws_iam_role.cluster-autoscaler.arn
     }
   }
+
+  depends_on = [ 
+    aws_eks_access_entry.console-allow,
+    aws_eks_access_entry.admin-allow
+  ]
 }
 
 data "aws_iam_policy_document" "oidc-alb-controller" {
@@ -109,4 +114,9 @@ resource "kubernetes_service_account" "aws-load-balancer-controller" {
       "eks.amazonaws.com/role-arn" = aws_iam_role.aws-load-balancer-controller.arn
     }
   }
+
+  depends_on = [ 
+    aws_eks_access_entry.console-allow,
+    aws_eks_access_entry.admin-allow
+  ]
 }

@@ -101,7 +101,7 @@ resource "terraform_data" "calico-apply" {
       "#!/bin/bash",
       "kubectl apply -f <(cat <(kubectl get clusterrole aws-node -o yaml) /home/ec2-user/k8s/append.yaml)",
       "kubectl set env daemonset aws-node -n kube-system ANNOTATE_POD_IP=true",
-      "sleep 3",
+      "sleep 30",
       "CALICO_POD_NAME=$(kubectl get pods -n calico-system -o name | grep calico-kube-controllers- | cut -d '/' -f 2)",
       "kubectl delete pod $CALICO_POD_NAME -n calico-system"
     ]

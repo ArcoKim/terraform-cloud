@@ -40,12 +40,13 @@ resource "aws_instance" "bastion" {
   su - ec2-user -c 'aws eks update-kubeconfig --name ${aws_eks_cluster.skills.name} --kubeconfig ~/.kube/config'
   su - ec2-user -c 'aws s3 cp s3://${aws_s3_bucket.config.id}/ ~/ --recursive'
   chmod +x ~/app/match/match && chmod +x ~/app/stress/stress
-  git config --global credential.helper '!aws codecommit credential-helper $@'
-  git config --global credential.UseHttpPath true
-  cd ~/k8s && git init && git add .
-  git commit -m "first commit"
-  git remote add origin ${aws_codecommit_repository.code.clone_url_http}
-  git push origin master
+  su - ec2-user -c 'git config --global credential.helper "!aws codecommit credential-helper $@"'
+  su - ec2-user -c 'git config --global credential.UseHttpPath true'
+  cd ~/k8s
+  su - ec2-user -c 'git init && git add .'
+  su - ec2-user -c 'git commit -m "first commit"'
+  su - ec2-user -c 'git remote add origin ${aws_codecommit_repository.code.clone_url_http}'
+  su - ec2-user -c 'git push origin master'
   aws ecr get-login-password --region ${local.region} | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.${local.region}.amazonaws.com
   docker build -t ${aws_ecr_repository.match.repository_url}:latest ~/app/match
   docker build -t ${aws_ecr_repository.stress.repository_url}:latest ~/app/stress
