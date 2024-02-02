@@ -1,5 +1,5 @@
 resource "aws_instance" "bastion" {
-  ami                         = "ami-0ff1cd0b5d98708d1" // Amazon Linux 2 : ami-074413845c101fc4d
+  ami                         = data.aws_ami.amazon-linux-2023.id
   associate_public_ip_address = true
   instance_type               = "t3.small"
   subnet_id                   = var.public-a
@@ -14,8 +14,28 @@ resource "aws_instance" "bastion" {
   }
 }
 
+data "aws_ami" "amazon-linux-2023" {
+  most_recent      = true
+  owners           = ["amazon"]
+ 
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-x86_64"]
+  }
+ 
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+ 
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 resource "aws_security_group" "bastion" {
-  name        = "bastion_sg"
+  name        = "bastion-sg"
   description = "Allow SSH traffic"
   vpc_id      = var.vpc
 
