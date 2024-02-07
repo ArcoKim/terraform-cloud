@@ -18,6 +18,13 @@ module "eks" {
   bastion_role = module.bastion.bastion_role
 }
 
+module "ecs" {
+  source = "./ecs"
+  vpc = module.vpc.vpc
+  private-a = module.vpc.private-a
+  private-c = module.vpc.private-c
+}
+
 # module "seoul-2021" {
 #   source = "./skills/2021-seoul"
 # }
