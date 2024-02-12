@@ -2,10 +2,10 @@ variable "vpc" {
   type = string
 }
 
-variable "private-a" {
-  type = string
+variable "public" {
+  type = map(string)
 }
 
-variable "private-c" {
-  type = string
+variable "private" {
+  type = map(string)
 }

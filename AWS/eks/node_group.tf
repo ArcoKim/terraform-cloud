@@ -4,7 +4,7 @@ resource "aws_eks_node_group" "addon" {
   node_role_arn   = aws_iam_role.nodes.arn
 
   subnet_ids = [
-    var.private-a, var.private-c
+    var.private["a"], var.private["c"]
   ]
 
   ami_type       = "BOTTLEROCKET_ARM_64"
@@ -42,7 +42,7 @@ resource "aws_eks_node_group" "app" {
   node_role_arn   = aws_iam_role.nodes.arn
 
   subnet_ids = [
-    var.private-a, var.private-c
+    var.private["a"], var.private["c"]
   ]
 
   ami_type       = "BOTTLEROCKET_x86_64"

@@ -1,11 +1,11 @@
-resource "aws_ecs_service" "mongo" {
+resource "aws_ecs_service" "skills" {
   name            = "skills-svc"
   cluster         = aws_ecs_cluster.skills.id
   task_definition = aws_ecs_task_definition.skills.arn
   desired_count   = 2
 
     network_configuration {
-      subnets = [var.private-a, var.private-c]
+      subnets = [ var.private["a"], var.private["c"] ]
       security_groups = [ aws_security_group.ecs-svc.id ]
       assign_public_ip = false
     }
@@ -13,7 +13,7 @@ resource "aws_ecs_service" "mongo" {
   load_balancer {
     target_group_arn = aws_lb_target_group.ecs-svc.arn
     container_name   = "app"
-    container_port   = 3000
+    container_port   = 80
   }
 }
 
@@ -23,8 +23,8 @@ resource "aws_security_group" "ecs-svc" {
   vpc_id      = var.vpc
 
   ingress {
-    from_port        = 3000
-    to_port          = 3000
+    from_port        = 80
+    to_port          = 80
     protocol         = "tcp"
     security_groups = [ aws_security_group.ecs-alb.id ]
   }
@@ -39,19 +39,15 @@ resource "aws_security_group" "ecs-svc" {
 }
 
 resource "aws_lb" "ecs" {
-  name               = "skills-ecs-alb"
-  internal           = true
+  name               = "skills-alb"
+  internal           = false
   load_balancer_type = "application"
   security_groups    = [ aws_security_group.ecs-alb.id ]
-  subnets            = [ var.private-a, var.private-c ]
-}
-
-data "aws_vpc" "main" {
-  id = var.vpc
+  subnets            = [ var.public["a"], var.public["c"] ]
 }
 
 resource "aws_security_group" "ecs-alb" {
-  name        = "ecs-alb-sg"
+  name        = "alb-sg"
   description = "Allow HTTP traffic"
   vpc_id      = var.vpc
 
@@ -59,7 +55,8 @@ resource "aws_security_group" "ecs-alb" {
     from_port        = 80
     to_port          = 80
     protocol         = "tcp"
-    cidr_blocks      = [ data.aws_vpc.main.cidr_block ]
+    cidr_blocks      = [ "0.0.0.0/0" ]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   egress {
@@ -84,7 +81,7 @@ resource "aws_lb_listener" "front_end" {
 
 resource "aws_lb_target_group" "ecs-svc" {
   name     = "ecs-svc-tg"
-  port     = 3000
+  port     = 80
   protocol = "HTTP"
   target_type = "ip"
   vpc_id   = var.vpc

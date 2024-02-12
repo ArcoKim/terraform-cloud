@@ -2,20 +2,12 @@ variable "vpc" {
   type = string
 }
 
-variable "public-a" {
-  type = string
+variable "public" {
+  type = map(string)
 }
 
-variable "public-c" {
-  type = string
-}
-
-variable "private-a" {
-  type = string
-}
-
-variable "private-c" {
-  type = string
+variable "private" {
+  type = map(string)
 }
 
 variable "bastion_role" {
