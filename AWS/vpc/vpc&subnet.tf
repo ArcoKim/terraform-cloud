@@ -14,7 +14,8 @@ resource "aws_subnet" "public-a" {
   availability_zone       = "ap-northeast-2a"
 
   tags = {
-    Name = "skills-public-a"
+    Name = "skills-public-a",
+    "kubernetes.io/role/elb" = 1
   }
 }
 
@@ -26,6 +27,7 @@ resource "aws_subnet" "public-c" {
 
   tags = {
     Name = "skills-public-c"
+    "kubernetes.io/role/elb" = 1
   }
 }
 
@@ -36,6 +38,7 @@ resource "aws_subnet" "private-a" {
 
   tags = {
     Name = "skills-private-a"
+    "kubernetes.io/role/internal-elb" = 1
   }
 }
 
@@ -46,5 +49,6 @@ resource "aws_subnet" "private-c" {
 
   tags = {
     Name = "skills-private-c"
+    "kubernetes.io/role/internal-elb" = 1
   }
 }
