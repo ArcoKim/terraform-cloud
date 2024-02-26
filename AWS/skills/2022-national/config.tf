@@ -67,6 +67,13 @@ resource "aws_s3_object" "deployment" {
   etag = filemd5("${local.filepath}/k8s/deployment.yaml")
 }
 
+resource "aws_s3_object" "append" {
+  bucket = aws_s3_bucket.config.id
+  key = "k8s/append.yaml"
+  source = "${local.filepath}/k8s/append.yaml"
+  etag = filemd5("${local.filepath}/k8s/append.yaml")
+}
+
 provider "kubernetes" {
   host                   = aws_eks_cluster.skills.endpoint
   cluster_ca_certificate = base64decode(aws_eks_cluster.skills.certificate_authority[0].data)

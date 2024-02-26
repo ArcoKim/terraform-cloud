@@ -51,6 +51,12 @@ resource "kubectl_manifest" "ingress-match" {
   ]
 }
 
+data "aws_lb" "match" {
+  name = "match-alb"
+
+  depends_on = [ kubectl_manifest.ingress-match ]
+}
+
 resource "kubectl_manifest" "ingress-stress" {
   yaml_body = file("${local.filepath}/k8s/stress/ingress.yaml")
 
@@ -58,6 +64,12 @@ resource "kubectl_manifest" "ingress-stress" {
     helm_release.aws-load-balancer-controller,
     kubectl_manifest.service
   ]
+}
+
+data "aws_lb" "stress" {
+  name = "stress-alb"
+
+  depends_on = [ kubectl_manifest.ingress-stress ]
 }
 
 resource "kubectl_manifest" "networkpolicy-match" {

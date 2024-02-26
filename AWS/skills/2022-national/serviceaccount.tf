@@ -67,8 +67,7 @@ resource "kubernetes_service_account" "cluster-autoscaler" {
     }
   }
 
-  depends_on = [ 
-    aws_eks_access_entry.console-allow,
+  depends_on = [
     aws_eks_access_entry.admin-allow
   ]
 }
@@ -115,8 +114,7 @@ resource "kubernetes_service_account" "aws-load-balancer-controller" {
     }
   }
 
-  depends_on = [ 
-    aws_eks_access_entry.console-allow,
+  depends_on = [
     aws_eks_access_entry.admin-allow
   ]
 }

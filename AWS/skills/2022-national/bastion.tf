@@ -17,7 +17,7 @@ resource "aws_instance" "bastion" {
   systemctl start docker
   systemctl enable docker
   usermod -a -G docker ec2-user
-  curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.3/2023-11-14/bin/linux/amd64/kubectl
+  curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.29.0/2024-01-04/bin/linux/amd64/kubectl
   chmod +x ./kubectl
   mv ./kubectl /usr/local/bin/kubectl
   kubectl completion bash | tee /etc/bash_completion.d/kubectl > /dev/null
@@ -37,7 +37,7 @@ resource "aws_instance" "bastion" {
   echo "export AWS_DEFAULT_REGION=${local.region}" >> ~/.bashrc
   echo "export AWS_ACCOUNT_ID=${data.aws_caller_identity.current.account_id}" >> ~/.bashrc
   source ~/.bashrc
-  su - ec2-user -c 'aws eks update-kubeconfig --name ${aws_eks_cluster.skills.name} --kubeconfig ~/.kube/config'
+  su - ec2-user -c 'aws eks update-kubeconfig --name ${aws_eks_cluster.skills.name} --region ${local.region}'
   su - ec2-user -c 'aws s3 cp s3://${aws_s3_bucket.config.id}/ ~/ --recursive'
   chmod +x ~/app/match/match && chmod +x ~/app/stress/stress
   su - ec2-user -c 'git config --global credential.helper "!aws codecommit credential-helper $@"'

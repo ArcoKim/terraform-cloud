@@ -23,24 +23,6 @@ resource "aws_eks_cluster" "skills" {
   ]
 }
 
-resource "aws_eks_access_entry" "console-allow" {
-  cluster_name  = aws_eks_cluster.skills.name
-  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/admin"
-  type          = "STANDARD"
-}
-
-resource "aws_eks_access_policy_association" "console-allow" {
-  cluster_name  = aws_eks_cluster.skills.name
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/admin"
-
-  access_scope {
-    type = "cluster"
-  }
-  
-  depends_on = [ aws_eks_access_entry.console-allow ]
-}
-
 resource "aws_eks_access_entry" "admin-allow" {
   cluster_name  = aws_eks_cluster.skills.name
   principal_arn = aws_iam_role.admin.arn
@@ -62,14 +44,14 @@ resource "aws_eks_access_policy_association" "admin-allow" {
 resource "aws_eks_addon" "kube-proxy" {
   cluster_name = aws_eks_cluster.skills.name
   addon_name   = "kube-proxy"
-  addon_version = "v1.28.2-eksbuild.2"
+  addon_version = "v1.29.0-eksbuild.1"
   resolve_conflicts_on_update = "OVERWRITE"
 }
 
 resource "aws_eks_addon" "coredns" {
   cluster_name = aws_eks_cluster.skills.name
   addon_name   = "coredns"
-  addon_version = "v1.10.1-eksbuild.4"
+  addon_version = "v1.11.1-eksbuild.4"
   resolve_conflicts_on_update = "OVERWRITE"
 
   depends_on = [ aws_eks_node_group.addon ]
@@ -78,7 +60,7 @@ resource "aws_eks_addon" "coredns" {
 resource "aws_eks_addon" "vpc-cni" {
   cluster_name = aws_eks_cluster.skills.name
   addon_name   = "vpc-cni"
-  addon_version = "v1.15.1-eksbuild.1"
+  addon_version = "v1.16.0-eksbuild.1"
   resolve_conflicts_on_update = "OVERWRITE"
 }
 
