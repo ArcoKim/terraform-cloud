@@ -31,7 +31,7 @@ resource "aws_eks_node_group" "addon" {
   }
 
   depends_on = [
-    aws_eks_access_policy_association.admin-allow
+    aws_eks_access_policy_association.console-allow
   ]
 }
 
@@ -74,7 +74,7 @@ resource "aws_eks_node_group" "app" {
   }
 
   depends_on = [
-    aws_eks_access_policy_association.admin-allow
+    aws_eks_access_policy_association.console-allow
   ]
 }
 

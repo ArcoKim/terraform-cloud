@@ -32,13 +32,33 @@ resource "aws_eks_access_entry" "admin-allow" {
 resource "aws_eks_access_policy_association" "admin-allow" {
   cluster_name  = aws_eks_cluster.skills.name
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-  principal_arn = aws_iam_role.admin.arn
+  principal_arn = aws_eks_access_entry.admin-allow.principal_arn
 
   access_scope {
     type = "cluster"
   }
 
   depends_on = [ aws_eks_access_entry.admin-allow ]
+}
+
+resource "aws_eks_access_entry" "console-allow" {
+  cluster_name  = aws_eks_cluster.skills.name
+  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/admin"
+  type          = "STANDARD"
+
+  depends_on = [ aws_eks_access_policy_association.admin-allow ]
+}
+
+resource "aws_eks_access_policy_association" "console-allow" {
+  cluster_name  = aws_eks_cluster.skills.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = aws_eks_access_entry.console-allow.principal_arn
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [ aws_eks_access_entry.console-allow ]
 }
 
 resource "aws_eks_addon" "kube-proxy" {
